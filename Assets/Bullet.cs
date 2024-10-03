@@ -2,31 +2,37 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    public float lifetime = 5f; // Time in seconds before the bullet gets destroyed
-    public float knockbackForce = 500f; // Adjust the force as needed
+    public float lifetime = 5f;        // Time in seconds before the bullet gets destroyed
+    public float knockbackForce = 500f; // Knockback force applied on hit
+    public int damage = 10;             // Amount of damage the bullet does
 
     void Start()
     {
-        Destroy(gameObject, lifetime);
+        Destroy(gameObject, lifetime); // Destroy the bullet after its lifetime expires
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        // Optional: Check for a specific tag if needed
-        // if (!other.CompareTag("Enemy")) return;
+        // Check if the object hit is on the "Floor" layer (assuming layer index 8 for "Floor")
+        if (other.gameObject.layer == LayerMask.NameToLayer("Floor")) return;
 
-        Rigidbody2D rb = other.attachedRigidbody; // Get the Rigidbody2D of the object we collided with
+        // Apply knockback if the object has a Rigidbody2D
+        Rigidbody2D rb = other.attachedRigidbody;
         if (rb != null)
         {
-            // Calculate the direction of the force
             Vector2 forceDirection = other.transform.position - transform.position;
             forceDirection.Normalize();
-
-            // Apply the force
             rb.AddForce(forceDirection * knockbackForce);
         }
 
-        // Destroy the bullet on collision
+        // Apply damage if the object has a ZombieHealth component
+        ZombieHealth zombieHealth = other.GetComponent<ZombieHealth>();
+        if (zombieHealth != null)
+        {
+            zombieHealth.TakeDamage(damage); // Apply the bullet's damage to the zombie
+        }
+
+        // Destroy the bullet on collision with other objects
         Destroy(gameObject);
     }
 }
